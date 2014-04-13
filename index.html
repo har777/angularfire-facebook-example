@@ -1,0 +1,68 @@
+<!doctype html>
+<html ng-app="facebookApp">
+<head>
+	<script src="https://cdn.firebase.com/js/client/1.0.11/firebase.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.6/angular.min.js"></script>
+	<script src="https://cdn.firebase.com/libs/angularfire/0.7.1/angularfire.min.js"></script>
+	<script src="https://cdn.firebase.com/js/simple-login/1.3.2/firebase-simple-login.js"></script>
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+	
+	<style>
+		#main {
+					text-align: center;
+		    	}
+	</style>
+
+	<script>
+		var facebookApp = angular.module("facebookApp", ["firebase"]);
+
+		function MainController($scope, $firebase, $firebaseSimpleLogin, $http) {
+			var profileRef = new Firebase("musejam-intern-facebook-app.firebaseio.com");
+			//syncing
+			$scope.profile = $firebase(profileRef);
+
+			$scope.auth = $firebaseSimpleLogin(profileRef);
+			
+			$scope.view = function() {
+				$http.get('https://graph.facebook.com/me/likes/?access_token='+$scope.auth['user']['accessToken']).success(function(data) {
+					$scope.like_data = data;
+					console.log(data);
+					
+				}).
+				error(function(data){
+					alert("error");
+				});
+			}
+		}
+	</script>
+
+
+
+
+</html>
+
+<body ng-controller="MainController">
+	
+	<div id="login">
+		<span ng-show="auth.user">
+	        <a href="#" ng-click="auth.$logout()">Logout</a>
+	        <div id="main">
+	        	<h1>Welcome {{auth['user']['displayName']}}</h1>
+	        	<h2>{{auth['user']['quotes']}}</h2>
+			</div>
+
+		    <div class="list-group" ng-repeat="(key, val) in like_data">
+		        <a class="list-group-item" ng-repeat="subval in val">
+		            <h4 class="list-group-item-heading">{{subval.name}}</h4>
+		            <p class="list-group-item-text">{{subval.category}}</p>
+		        </a>
+		    </div>
+
+	        <a href="#" ng-click="view()">Show User Likes</a>
+       
+	    </span>
+	    <a href="#" ng-hide="auth.user" ng-click="auth.$login('facebook', {scope: 'email, user_likes'})">Login</a>
+	</div>
+</body>
+</html>
